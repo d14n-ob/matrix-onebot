@@ -1,2 +1,6 @@
 /target
 /.idea
+/sqlite3.dll
+/sqlite3.lib
+/lang
+/config.toml

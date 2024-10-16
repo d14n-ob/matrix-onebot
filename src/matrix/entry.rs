@@ -1,6 +1,5 @@
 use std::sync::Arc;
-use matrix_sdk::{Client, config::SyncSettings, ruma::{
-    user_id,
+use matrix_sdk::{Client, ruma::{
     events::room::{
         message::SyncRoomMessageEvent,
         member::{
@@ -8,6 +7,8 @@ use matrix_sdk::{Client, config::SyncSettings, ruma::{
         }
     },
 }, Room, ServerName};
+use matrix_sdk::ruma::UserId;
+use crate::config::{CONFIG};
 use crate::matrix::handlers::EventHandler;
 
 pub async fn add_event_handlers(client: Client, event_handler: EventHandler) -> anyhow::Result<Client> {
@@ -33,17 +34,21 @@ pub async fn add_event_handlers(client: Client, event_handler: EventHandler) -> 
 }
 
 pub async fn create_client() -> anyhow::Result<Client> {
-    let alice = user_id!("@bot:matrix.meowl.cc");
-    // let client = Client::builder().server_name(alice.server_name()).build().await?;
-    let client = Client::builder()
-        .server_name(&ServerName::parse("meowl-matrix.speed.micrsky.com").unwrap())
-        .build().await?;
-    client.matrix_auth().login_username(alice, "official_bot").send().await?;
+    let user_id = &CONFIG.read().unwrap().full_user_id;
+    let user_id = UserId::parse(user_id)?;
+
+    let server_domain = &CONFIG.read().unwrap().server_domain;
+    let client =
+        if server_domain.is_empty() {
+            Client::builder().server_name(user_id.server_name()).build().await?
+        } else {
+            Client::builder()
+                .server_name(&ServerName::parse(server_domain).unwrap())
+                .build().await?
+        };
+
+    let password = &CONFIG.read().unwrap().password;
+    client.matrix_auth().login_username(user_id, password).send().await?;
 
     Ok(client)
 }
-
-// pub async fn entry(ob: Arc<OneBot<TracingHandler<Event, Action, Resp>, ImplOBC<Event>>>) {
-//     let eh = EventHandler::init(ob);
-//     let client = create_client().await.expect("登录失败");
-// }

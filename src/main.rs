@@ -4,6 +4,7 @@ mod matrix;
 mod onebot;
 mod constant;
 mod error;
+mod config;
 
 #[tokio::main]
 async fn main() {
