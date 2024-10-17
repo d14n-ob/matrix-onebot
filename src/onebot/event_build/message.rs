@@ -40,21 +40,21 @@ pub fn group(ev: SyncRoomMessageEvent, room: Room) -> GroupMessageEvent {
 
 
 fn get_msg(eid: String, ev: SyncRoomMessageEvent) -> Message {
-    let msg_content = ev.as_original().unwrap().content.clone();
-    let msg_type = msg_content.clone().msgtype;
+    let msg_content = &ev.as_original().unwrap().content;
+    let msg_type = &msg_content.msgtype;
 
     Message {
         selft: get_self(),
         message_id: eid.clone(),
         // message: Segments::from([MsgSegment::from(get_msg_segment(msg_content))]),
-        message: Segments::from([MsgSegment::from(get_alt_msg_segment(msg_type.clone()))]),
+        message: Segments::from([MsgSegment::from(get_alt_msg_segment(msg_type))]),
         alt_message: get_alt_msg_segment(msg_type),
         user_id: ev.sender().into(),
     }
 }
 
-fn get_msg_segment(msg_content: RoomMessageEventContent) -> String {
-    let msg_type = msg_content.clone().msgtype;
+fn get_msg_segment(msg_content: &RoomMessageEventContent) -> String {
+    let msg_type = &msg_content.msgtype;
 
     match msg_type {
         // MessageType::Audio(_) => { format!("{:?}", msg_content) }
@@ -74,22 +74,22 @@ fn get_msg_segment(msg_content: RoomMessageEventContent) -> String {
     }
 }
 
-fn get_alt_msg_segment(msg_type: MessageType) -> String {
+fn get_alt_msg_segment(msg_type: &MessageType) -> String {
     match msg_type {
         MessageType::Audio(_) => { String::from("暂未实现") }
         MessageType::Emote(_) => { String::from("暂未实现") }
         MessageType::File(_) => { String::from("暂未实现") }
         MessageType::Image(content) => {
-            if let Plain(uri) = content.source {
+            if let Plain(uri) = &content.source {
                 format!("[Image: {}]", uri.to_string())
             } else {
-                "[Image: Encrypted]".to_string()
+                "[Image: Encrypted | 暂未实现]".to_owned()
             }
         }
         MessageType::Location(_) => { String::from("暂未实现") }
         MessageType::Notice(_) => { String::from("暂未实现") }
         MessageType::ServerNotice(_) => { String::from("暂未实现") }
-        MessageType::Text(content) => { content.body }
+        MessageType::Text(content) => { content.body.to_owned() }
         MessageType::Video(_) => { String::from("暂未实现") }
         MessageType::VerificationRequest(_) => { String::from("暂未实现") }
         MessageType::_Custom(_) => { String::from("暂未实现") }

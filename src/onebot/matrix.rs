@@ -1,11 +1,12 @@
 use matrix_sdk::ruma::MilliSecondsSinceUnixEpoch;
 use walle_core::prelude::Selft;
+use crate::config::CONFIG;
 use crate::constant::PLATFORM;
 
 pub fn get_self() -> Selft {
     Selft {
         platform: PLATFORM.to_owned(),
-        user_id: "等实现config之后从config里读，不想传client参".to_string(),
+        user_id: CONFIG.read().unwrap().full_user_id.to_owned(),
     }
 }
 

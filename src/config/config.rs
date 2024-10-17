@@ -6,22 +6,27 @@ use lazy_static::lazy_static;
 use tracing::{info, warn};
 use matrix_sdk::ruma::exports::serde::{Deserialize, Serialize};
 use std::sync::RwLock;
+use serde::de::Expected;
 use walle_core::config::ImplConfig;
 use crate::constant::MATRIX_ONEBOT;
 
 type IOResult<T> = Result<T, Error>;
 
 const CONFIG_PATH: &'static str = "config.toml";
+const IN_INIT_LOG_NAME_CONFIG: &'static str = "config";
+const IN_INIT_LOG_NAME_LANG: &'static str = "language file";
 
 lazy_static! {
     pub static ref CONFIG: RwLock<Config> = RwLock::new(
-        Config::load_or_new(CONFIG_PATH).expect("Failed to load config, exit")
+        Config::load_or_new(CONFIG_PATH, IN_INIT_LOG_NAME_CONFIG)
+        .expect(&format!("Failed to load {}, exit", IN_INIT_LOG_NAME_CONFIG))
     );
     pub static ref LANG: RwLock<Lang> = RwLock::new(
         Lang::load_or_new(
-            &format!("lang/{}", &*CONFIG.read().unwrap().lang_file)
-        ).
-        expect("Failed to load language file, exit")
+            &format!("lang/{}", &*CONFIG.read().unwrap().lang_file),
+            IN_INIT_LOG_NAME_LANG,
+        )
+        .expect(&format!("Failed to load {}, exit", IN_INIT_LOG_NAME_LANG))
     );
 }
 
@@ -98,21 +103,21 @@ trait LoadConfig: for<'de> Deserialize<'de> + NewConfig {
         file.read_to_string(&mut data)?;
         Self::de(&data)
     }
-    fn load_or_new(path: &str) -> IOResult<Self> {
-        info!(target: MATRIX_ONEBOT,"Loading config from {}", path);
+    fn load_or_new(path: &str, ty: &str) -> IOResult<Self> {
+        info!(target: MATRIX_ONEBOT,"Loading {} from {}", ty, path);
         match Self::load_from_file(path) {
             Ok(config) => {
-                info!(target: MATRIX_ONEBOT,"Success load config from {}", path);
+                info!(target: MATRIX_ONEBOT,"Success load {} from {}", ty, path);
                 Ok(config)
             },
             Err(err) => match err.kind() {
                 std::io::ErrorKind::Other => {
-                    warn!(target: MATRIX_ONEBOT, "Serialize config error {}", err);
+                    warn!(target: MATRIX_ONEBOT, "Serialize {} error {}", ty, err);
                     Err(err)
                 }
                 _ => {
                     warn!(target: MATRIX_ONEBOT, "Open {} failed: {}", path, err);
-                    info!(target: MATRIX_ONEBOT, "Create new config: {}", path);
+                    info!(target: MATRIX_ONEBOT, "Create new {}: {}", ty, path);
                     let config = Self::new_config();
                     config.save_to_file(path)?;
                     Ok(config)
@@ -135,15 +140,38 @@ impl NewConfig for Config {
 impl LoadConfig for Config {}
 
 // Lang
+// todo: 优化 - 实现 &'static str
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Lang {
+    pub error_matrix_login_failed: String,
+    pub error_matrix_add_event_handler_failed: String,
+    pub error_matrix_sync_failed: String,
+
     pub error_matrix_login_user_id_is_none: String,
+
+    pub error_database_connection_failed: String,
+    pub error_database_table_init_failed: String,
+    pub error_database_table_insert_failed: String,
+    pub error_database_table_query_failed: String,
+    pub error_database_table_delete_failed: String,
+    pub error_database_table_edit_failed: String,
 }
 
 impl Default for Lang {
     fn default() -> Self {
         Self {
-            error_matrix_login_user_id_is_none: "错误: 未填写登录 Matrix 的用户FullId".to_owned()
+            error_matrix_login_failed: "错误: 登录失败".to_owned(),
+            error_matrix_add_event_handler_failed: "错误: 事件处理器添加失败".to_owned(),
+            error_matrix_sync_failed: "错误: 同步失败".to_owned(),
+
+            error_matrix_login_user_id_is_none: "错误: 未填写登录 Matrix 的用户FullId".to_owned(),
+
+            error_database_connection_failed: "错误: 数据库连接失败".to_owned(),
+            error_database_table_init_failed: "错误: 数据库表 {table} 初始化失败".to_owned(),
+            error_database_table_insert_failed: "错误: 数据库表 {table} 插入失败".to_owned(),
+            error_database_table_query_failed: "错误: 数据库表 {table} 查询失败: {error}".to_owned(),
+            error_database_table_delete_failed: "错误: 数据库表 {table} 删除(行)失败".to_owned(),
+            error_database_table_edit_failed: "错误: 数据库表 {table} 修改失败".to_owned(),
         }
     }
 }

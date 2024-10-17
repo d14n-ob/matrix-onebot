@@ -115,7 +115,7 @@ impl GetVersion for MatrixHandler {
 impl ActionHandler for MatrixHandler {
     type Config = ();
 
-    async fn start<AH, EH>(&self, ob: &Arc<OneBot<AH, EH>>, config: Self::Config) -> WalleResult<Vec<JoinHandle<()>>>
+    async fn start<AH, EH>(&self, _ob: &Arc<OneBot<AH, EH>>, _config: Self::Config) -> WalleResult<Vec<JoinHandle<()>>>
     where
         AH: ActionHandler<Event, Action, Resp> + Send + Sync + 'static,
         EH: EventHandler<Event, Action, Resp> + Send + Sync + 'static

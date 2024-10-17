@@ -1,11 +1,27 @@
-use matrix_sdk::{Client, Room, RoomMemberships};
-use matrix_sdk::ruma::events::room::message::SyncRoomMessageEvent;
+use matrix_sdk::{Room, RoomMemberships};
+use matrix_sdk::ruma::events::room::message::{MessageType, SyncRoomMessageEvent};
 use walle_core::event::Event;
 use crate::matrix::handlers::EventHandler;
 use crate::onebot::event_build;
+use crate::sql::table::{matrix_events, matrix_messages, TableCommonOpera};
 
 impl EventHandler {
-    pub async fn message(&self, ev: SyncRoomMessageEvent, room: Room) {
+    pub async fn message(
+        &self,
+        ev: SyncRoomMessageEvent,
+        room: Room,
+        matrix_events_table: matrix_events::Table,
+        matrix_messages_table: matrix_messages::Table,
+        insert_failed_msg: String,
+        query_failed_msg: String,
+    ) {
+        // todo: 重构 sqlx 异步数据库
+        if query_event_is_in_db(&ev.event_id().to_string(), &matrix_events_table, query_failed_msg) {
+            // 如果数据库中存在此消息, 说明是被同步的 历史消息, 不处理
+            return;
+        }
+        save_message_in_db(&ev, &matrix_events_table, &matrix_messages_table, insert_failed_msg);
+
         println!("Message Received: {:?}", ev);
         println!("Members: {}", room.members(RoomMemberships::JOIN).await.unwrap().len());
 
@@ -24,4 +40,126 @@ impl EventHandler {
             }
         }
     }
+}
+
+fn query_event_is_in_db(
+    event_id: &str,
+    matrix_events_table: &matrix_events::Table,
+    query_failed_msg: String,
+) -> bool {
+    if let Some(_) = matrix_events_table.query(event_id)
+        .expect(&query_failed_msg.replace("{table}", matrix_events::TABLE_NAME)) {
+        true
+    } else { false }
+}
+
+fn save_message_in_db(
+    ev: &SyncRoomMessageEvent,
+    matrix_events_table: &matrix_events::Table,
+    matrix_messages_table: &matrix_messages::Table,
+    insert_failed_msg: String,
+) {
+    // 入事件库
+    let event_id = ev.event_id().to_string();
+    let event_timestamp = ev.origin_server_ts().get()
+        .to_string().parse::<i64>().unwrap_or(0);
+    matrix_events_table.insert_or_update(matrix_events::Event {
+        event_id: event_id.clone(),
+        ty: "message".to_owned(),
+        timestamp: event_timestamp,
+    }).expect(
+        &insert_failed_msg.replace("{table}", matrix_events::TABLE_NAME),
+    );
+
+    // 入消息库
+    let msg_content = &ev.as_original().unwrap().content;
+    let message: matrix_messages::Message = match &msg_content.msgtype {
+        MessageType::Audio(_) => matrix_messages::Message {
+            event_id,
+            ty: "Audio".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::Emote(_) => matrix_messages::Message {
+            event_id,
+            ty: "Emote".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::File(_) => matrix_messages::Message {
+            event_id,
+            ty: "File".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::Image(_) => matrix_messages::Message {
+            event_id,
+            ty: "Image".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::Location(_) => matrix_messages::Message {
+            event_id,
+            ty: "Location".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::Notice(_) => matrix_messages::Message {
+            event_id,
+            ty: "Notice".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::ServerNotice(_) => matrix_messages::Message {
+            event_id,
+            ty: "ServerNotice".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::Text(c) => matrix_messages::Message {
+            event_id,
+            ty: "Text".to_owned(),
+            body: c.body.to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::Video(_) => matrix_messages::Message {
+            event_id,
+            ty: "Video".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::VerificationRequest(_) => matrix_messages::Message {
+            event_id,
+            ty: "VerificationRequest".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        MessageType::_Custom(_) => matrix_messages::Message {
+            event_id,
+            ty: "_Custom".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        },
+        _ => matrix_messages::Message {
+            event_id,
+            ty: "_Unknown".to_owned(),
+            body: "".to_owned(),
+            sender: ev.sender().to_string(),
+            timestamp: event_timestamp,
+        }
+    };
+    matrix_messages_table.insert_or_update(message).expect(
+        &insert_failed_msg.replace("{table}", matrix_messages::TABLE_NAME),
+    );
 }
