@@ -1,8 +1,8 @@
 use matrix_sdk::{Room, RoomMemberships};
-use matrix_sdk::ruma::{room_id, user_id, RoomId, UserId};
+use matrix_sdk::ruma::{UserId};
 use walle_core::action::SendMessage;
 use walle_core::structs::SendMessageResp;
-use walle_core::resp::{resp_error, RespError};
+use walle_core::resp::{resp_error,};
 use matrix_sdk::ruma::events::room::message::RoomMessageEventContent;
 use walle_core::util::Value;
 use crate::config::{CONFIG, LANG};
