@@ -98,10 +98,8 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-      - name: Install cross
-        run: cargo install cross
-      - name: Cross compile for aarch64-pc-windows-msvc
-        run: cross build --features windows-build --target aarch64-pc-windows-msvc
+      - name: Cargo compile for aarch64-pc-windows-msvc
+        run: cargo build --features windows-build --target aarch64-pc-windows-msvc
   build-x86_64-pc-windows-msvc:
     runs-on: windows-latest
     steps:
@@ -112,10 +110,8 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-      - name: Install cross
-        run: cargo install cross
-      - name: Cross compile for x86_64-pc-windows-msvc
-        run: cross build --features windows-build --target x86_64-pc-windows-msvc
+      - name: Cargo compile for x86_64-pc-windows-msvc
+        run: cargo build --features windows-build --target x86_64-pc-windows-msvc
   build-i686-pc-windows-msvc:
     runs-on: windows-latest
     steps:
@@ -126,7 +122,5 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-      - name: Install cross
-        run: cargo install cross
-      - name: Cross compile for i686-pc-windows-msvc
-        run: cross build --features windows-build --target i686-pc-windows-msvc
+      - name: Cargo compile for i686-pc-windows-msvc
+        run: cargo build --features windows-build --target i686-pc-windows-msvc
