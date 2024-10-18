@@ -114,5 +114,5 @@ async fn get_time(eid: &str) -> f64 {
         }
     };
 
-    event.timestamp as f64
+    event.timestamp as f64 / 1000f64
 }

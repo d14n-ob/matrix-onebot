@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - use: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -20,4 +20,4 @@ jobs:
         run: cargo install cross
 
       - name: Cross compile for x86_64-win-gnu
-        run: cross build --target x86_64-pc-windows-gnu
+        run: cross build --futures windows-build --target x86_64-pc-windows-gnu
