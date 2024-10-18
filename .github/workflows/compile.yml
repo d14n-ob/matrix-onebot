@@ -6,22 +6,6 @@ on:
       - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    outputs:
-      tag_name: ${{ github.ref }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          tag_name: ${{ github.ref }}
-          name: Release ${{ github.ref }}
-          body: TODO New Release.
-          draft: false
-          prerelease: false
   build-x86_64-pc-windows-gnu:
     runs-on: ubuntu-latest
     env:
@@ -37,16 +21,16 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --features windows-build --target ${{ env.TARGET }}
+        run: cross build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
         run: ls target/${{ env.TARGET }}/release
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          files: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+          name: matrix-onebot-${{ env.TARGET }}.exe
+          path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
   build-x86_64-unknown-linux-gnu:
     runs-on: ubuntu-latest
     env:
@@ -62,16 +46,16 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --target ${{ env.TARGET }}
+        run: cross build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
       - name: Get compiled file
         run: ls target/${{ env.TARGET }}/release
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          files: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
+          name: matrix-onebot-${{ env.TARGET }}
+          path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
   build-i686-pc-windows-gnu:
     runs-on: ubuntu-latest
     env:
@@ -87,16 +71,16 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --features windows-build --target ${{ env.TARGET }}
+        run: cross build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
         run: ls target/${{ env.TARGET }}/release
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          files: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+          name: matrix-onebot-${{ env.TARGET }}.exe
+          path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
   build-i686-unknown-linux-gnu:
     runs-on: ubuntu-latest
     env:
@@ -112,16 +96,16 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --target ${{ env.TARGET }}
+        run: cross build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
       - name: Get compiled file
         run: ls target/${{ env.TARGET }}/release
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          files: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
+          name: matrix-onebot-${{ env.TARGET }}
+          path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
   build-aarch64-unknown-linux-gnu:
     runs-on: ubuntu-latest
     env:
@@ -137,16 +121,16 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --target ${{ env.TARGET }}
+        run: cross build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
       - name: Get compiled file
         run: ls target/${{ env.TARGET }}/release
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          files: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
+          name: matrix-onebot-${{ env.TARGET }}
+          path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
   build-x86_64-pc-windows-msvc:
     runs-on: windows-latest
     env:
@@ -160,16 +144,16 @@ jobs:
           profile: minimal
           override: true
       - name: Cargo compile for ${{ env.TARGET }}
-        run: cargo build --features windows-build --target ${{ env.TARGET }}
+        run: cargo build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
         run: ls target/${{ env.TARGET }}/release
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          files: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+          name: matrix-onebot-${{ env.TARGET }}.exe
+          path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
   build-i686-pc-windows-msvc:
     runs-on: windows-latest
     env:
@@ -183,13 +167,13 @@ jobs:
           profile: minimal
           override: true
       - name: Cargo compile for ${{ env.TARGET }}
-        run: cargo build --features windows-build --target ${{ env.TARGET }}
+        run: cargo build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
         run: ls target/${{ env.TARGET }}/release
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          files: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+          name: matrix-onebot-${{ env.TARGET }}.exe
+          path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
