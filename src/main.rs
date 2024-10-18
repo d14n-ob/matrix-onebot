@@ -1,3 +1,5 @@
+use std::{io, panic};
+use std::io::{Read, Write};
 use matrix_sdk::config::SyncSettings;
 use crate::config::LANG;
 
@@ -10,6 +12,7 @@ mod sql;
 
 #[tokio::main]
 async fn main() {
+    set_panic_hook();
     tracing_subscriber::fmt::init();
 
     // 启动 MatrixClient
@@ -27,4 +30,13 @@ async fn main() {
 
     client.sync(SyncSettings::default()).await
         .expect(&LANG.read().unwrap().error_matrix_sync_failed);
+}
+
+fn set_panic_hook() {
+    panic::set_hook(Box::new(|panic_info| {
+        println!("{}", panic_info);
+        println!("Press Enter to continue...");
+        io::stdout().flush().unwrap();
+        let _ = io::stdin().read_line(&mut String::new()).unwrap();
+    }));
 }

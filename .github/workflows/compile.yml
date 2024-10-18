@@ -1,0 +1,23 @@
+name: cross compile
+
+on: push
+
+jobs:
+  build-x86_64-win-gnu:
+    runs-on: ubuntu-latest
+
+    steps:
+      - use: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Install cross
+        run: cargo install cross
+
+      - name: Cross compile for x86_64-win-gnu
+        run: cross build --target x86_64-pc-windows-gnu
