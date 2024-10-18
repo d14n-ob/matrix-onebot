@@ -29,7 +29,7 @@ impl MatrixHandler {
                         .data.clone().get("text")
                         .ok_or_else(|| error::bad_param("message is null: text"))?
                         .to_owned();
-                    let Value::Str(simple_msg) = simple_msg else { todo!() };;
+                    let Value::Str(simple_msg) = simple_msg else { todo!() };
                     let content = RoomMessageEventContent::text_plain(simple_msg);
                     let resp_eid = room.send(content).await
                         .map_err(|e| error::matrix_client_error(e))?.event_id;
