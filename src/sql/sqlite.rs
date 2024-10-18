@@ -1,7 +1,7 @@
 use std::fmt::{Display};
 use std::sync::{Arc, Mutex};
 use lazy_static::lazy_static;
-use rusqlite::{params, Connection, Result};
+use rusqlite::Connection;
 use crate::config::LANG;
 use crate::sql::table::{matrix_events, matrix_messages};
 

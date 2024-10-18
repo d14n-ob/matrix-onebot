@@ -1,8 +1,10 @@
 use matrix_sdk::{Room, RoomMemberships};
 use matrix_sdk::ruma::events::room::message::{MessageType, SyncRoomMessageEvent};
 use walle_core::event::Event;
+use crate::config::{CONFIG, LANG};
 use crate::matrix::handlers::EventHandler;
 use crate::onebot::event_build;
+use crate::sql::DATABASE;
 use crate::sql::table::{matrix_events, matrix_messages, TableCommonOpera};
 
 impl EventHandler {
@@ -10,11 +12,11 @@ impl EventHandler {
         &self,
         ev: SyncRoomMessageEvent,
         room: Room,
-        matrix_events_table: matrix_events::Table,
-        matrix_messages_table: matrix_messages::Table,
-        insert_failed_msg: String,
-        query_failed_msg: String,
     ) {
+        let matrix_events_table = DATABASE.get_matrix_events_table();
+        let matrix_messages_table = DATABASE.get_matrix_messages_table();
+        let insert_failed_msg = (&LANG.read().unwrap().error_database_table_insert_failed).to_owned();
+        let query_failed_msg = (&LANG.read().unwrap().error_database_table_query_failed).to_owned();
         // todo: 重构 sqlx 异步数据库
         if query_event_is_in_db(&ev.event_id().to_string(), &matrix_events_table, query_failed_msg) {
             // 如果数据库中存在此消息, 说明是被同步的 历史消息, 不处理
@@ -24,6 +26,10 @@ impl EventHandler {
 
         println!("Message Received: {:?}", ev);
         println!("Members: {}", room.members(RoomMemberships::JOIN).await.unwrap().len());
+
+        // todo: 也许不应该我拦截 - 可配置拦截
+        // 如果是自己的信息, 不处理
+        if ev.sender().to_string().eq(&CONFIG.read().unwrap().full_user_id) { return; }
 
         match room.members(RoomMemberships::JOIN).await.unwrap().len() {
             0 => {}

@@ -8,23 +8,17 @@ use matrix_sdk::{Client, ruma::{
     },
 }, Room, ServerName};
 use matrix_sdk::ruma::UserId;
-use crate::config::{CONFIG, LANG};
+use crate::config::{CONFIG};
 use crate::matrix::handlers::EventHandler;
-use crate::sql::DATABASE;
 
 pub async fn add_event_handlers(client: Client, event_handler: EventHandler) -> anyhow::Result<Client> {
     let event_handler = Arc::new(event_handler);
 
     // MessageEvent
     {
-        // todo: RwLock impl Send -> 换用 Tokio RwLock
-        let matrix_events_table = DATABASE.get_matrix_events_table();
-        let matrix_messages_table = DATABASE.get_matrix_messages_table();
-        let insert_failed_msg = (&LANG.read().unwrap().error_database_table_insert_failed).to_owned();
-        let query_failed_msg = (&LANG.read().unwrap().error_database_table_query_failed).to_owned();
         let event_handler = Arc::clone(&event_handler);
         client.add_event_handler(move |ev: SyncRoomMessageEvent, room: Room| async move {
-            event_handler.message(ev, room, matrix_events_table, matrix_messages_table, insert_failed_msg, query_failed_msg).await;
+            event_handler.message(ev, room).await;
         });
     }
 

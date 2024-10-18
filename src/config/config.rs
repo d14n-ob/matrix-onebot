@@ -28,6 +28,17 @@ lazy_static! {
         )
         .expect(&format!("Failed to load {}, exit", IN_INIT_LOG_NAME_LANG))
     );
+    // pub static ref ASYNC_CONFIG: tokio::sync::RwLock<Config> = tokio::sync::RwLock::new(
+    //     Config::load_or_new(CONFIG_PATH, IN_INIT_LOG_NAME_CONFIG)
+    //     .expect(&format!("Failed to load {}, exit", IN_INIT_LOG_NAME_CONFIG))
+    // );
+    // pub static ref ASYNC_LANG: tokio::sync::RwLock<Lang> = tokio::sync::RwLock::new(
+    //     Lang::load_or_new(
+    //         &format!("lang/{}", &*CONFIG.read().unwrap().lang_file),
+    //         IN_INIT_LOG_NAME_LANG,
+    //     )
+    //     .expect(&format!("Failed to load {}, exit", IN_INIT_LOG_NAME_LANG))
+    // );
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -38,8 +49,20 @@ pub struct Config {
 
     pub lang_file: String, // 指定语言文件
 
+    pub onebot: OBConfig,
     pub meta: MetaConfig,
     pub onebot_conn: ImplConfig,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct OBConfig {
+    pub query_self_event_interval_secs: u64
+}
+
+impl Default for OBConfig {
+    fn default() -> Self {
+        Self { query_self_event_interval_secs: 1 }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -70,6 +93,7 @@ impl Default for Config {
             password: Default::default(),
             server_domain: Default::default(),
             lang_file: "zh-cn.toml".to_owned(),
+            onebot: Default::default(),
             meta: Default::default(),
             onebot_conn: Default::default(),
         }
