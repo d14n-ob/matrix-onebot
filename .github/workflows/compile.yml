@@ -21,7 +21,7 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --features windows-build --target ${{ env.TARGET }}
+        run: cross build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
@@ -46,7 +46,7 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --target ${{ env.TARGET }}
+        run: cross build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
       - name: Get compiled file
@@ -71,7 +71,7 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --features windows-build --target ${{ env.TARGET }}
+        run: cross build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
@@ -96,7 +96,7 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --target ${{ env.TARGET }}
+        run: cross build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
       - name: Get compiled file
@@ -121,7 +121,7 @@ jobs:
       - name: Install cross
         run: cargo install cross
       - name: Cross compile for ${{ env.TARGET }}
-        run: cross build --target ${{ env.TARGET }}
+        run: cross build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
       - name: Get compiled file
@@ -144,7 +144,7 @@ jobs:
           profile: minimal
           override: true
       - name: Cargo compile for ${{ env.TARGET }}
-        run: cargo build --features windows-build --target ${{ env.TARGET }}
+        run: cargo build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
@@ -167,7 +167,7 @@ jobs:
           profile: minimal
           override: true
       - name: Cargo compile for ${{ env.TARGET }}
-        run: cargo build --features windows-build --target ${{ env.TARGET }}
+        run: cargo build --features windows-build --target ${{ env.TARGET }} --release
       - name: Rename compiled file
         run: mv target/${{ env.TARGET }}/release/matrix-onebot.exe target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
       - name: Get compiled file
