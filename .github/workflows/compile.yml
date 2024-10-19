@@ -31,6 +31,11 @@ jobs:
         with:
           name: matrix-onebot-${{ env.TARGET }}.exe
           path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+      - name: Release
+        uses: softprops/action-gh-release@v2 
+        if: startsWith(github.ref, 'refs/tags/')
+        with: 
+          files: "target/**/*.exe"
   build-x86_64-unknown-linux-gnu:
     runs-on: ubuntu-latest
     env:
@@ -56,6 +61,11 @@ jobs:
         with:
           name: matrix-onebot-${{ env.TARGET }}
           path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with: 
+          files: "target/**/*.exe"       
   build-i686-pc-windows-gnu:
     runs-on: ubuntu-latest
     env:
@@ -81,6 +91,11 @@ jobs:
         with:
           name: matrix-onebot-${{ env.TARGET }}.exe
           path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with: 
+          files: "target/**/*.exe"
   build-i686-unknown-linux-gnu:
     runs-on: ubuntu-latest
     env:
@@ -106,6 +121,11 @@ jobs:
         with:
           name: matrix-onebot-${{ env.TARGET }}
           path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with: 
+          files: "target/**/*.exe"
   build-aarch64-unknown-linux-gnu:
     runs-on: ubuntu-latest
     env:
@@ -131,6 +151,11 @@ jobs:
         with:
           name: matrix-onebot-${{ env.TARGET }}
           path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with: 
+          files: "target/**/*.exe"       
   build-x86_64-pc-windows-msvc:
     runs-on: windows-latest
     env:
@@ -154,6 +179,11 @@ jobs:
         with:
           name: matrix-onebot-${{ env.TARGET }}.exe
           path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with: 
+          files: "target/**/*.exe"     
   build-i686-pc-windows-msvc:
     runs-on: windows-latest
     env:
@@ -177,3 +207,8 @@ jobs:
         with:
           name: matrix-onebot-${{ env.TARGET }}.exe
           path: target/${{ env.TARGET }}/release/matrix-onebot-${{ env.TARGET }}.exe
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with: 
+          files: "target/**/*.exe" 
