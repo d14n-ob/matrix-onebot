@@ -24,20 +24,33 @@ impl EventHandler {
         }
         save_message_in_db(&ev, &matrix_events_table, &matrix_messages_table, insert_failed_msg);
 
-        println!("Message Received: {:?}", ev);
-        println!("Members: {}", room.members(RoomMemberships::JOIN).await.unwrap().len());
+        // println!("Message Received: {:?}", ev);
+        // println!("Members: {}", room.members(RoomMemberships::JOIN).await.unwrap().len());
 
-        // todo: 也许不应该我拦截 - 可配置拦截
-        // 如果是自己的信息, 不处理
-        if ev.sender().to_string().eq(&CONFIG.read().unwrap().full_user_id) { return; }
+        // 拦截自身信息
+        if CONFIG.read().unwrap().onebot.is_intercept_self_message &&
+            ev.sender().to_string().eq(&CONFIG.read().unwrap().full_user_id)
+        { return; }
 
+        // todo: unwrap -> except
         match room.members(RoomMemberships::JOIN).await.unwrap().len() {
-            0 => {}
-            1 => { todo!("什么面壁者") }
+            0 => { todo!("这真的有可能被触发吗") }
             2 => {
-                // Private
-                let event_message_private = event_build::message::private(ev);
-                self.ob.handle_event(Event::from(event_message_private)).await.unwrap();
+                if let Ok(is_direct) = room.is_direct().await {
+                    if is_direct {
+                        // Private
+                        let event_message_private = event_build::message::private(ev);
+                        self.ob.handle_event(Event::from(event_message_private)).await.unwrap();
+                    } else {
+                        // Group
+                        let event_message_group = event_build::message::group(ev, room);
+                        self.ob.handle_event(Event::from(event_message_group)).await.unwrap();
+                    }
+                } else {
+                    // Group
+                    let event_message_group = event_build::message::group(ev, room);
+                    self.ob.handle_event(Event::from(event_message_group)).await.unwrap();
+                }
             }
             _ => {
                 // Group
@@ -86,6 +99,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::Emote(_) => matrix_messages::Message {
             event_id,
@@ -93,6 +107,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::File(_) => matrix_messages::Message {
             event_id,
@@ -100,6 +115,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::Image(_) => matrix_messages::Message {
             event_id,
@@ -107,6 +123,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::Location(_) => matrix_messages::Message {
             event_id,
@@ -114,6 +131,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::Notice(_) => matrix_messages::Message {
             event_id,
@@ -121,6 +139,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::ServerNotice(_) => matrix_messages::Message {
             event_id,
@@ -128,6 +147,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::Text(c) => matrix_messages::Message {
             event_id,
@@ -135,6 +155,7 @@ fn save_message_in_db(
             body: c.body.to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::Video(_) => matrix_messages::Message {
             event_id,
@@ -142,6 +163,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::VerificationRequest(_) => matrix_messages::Message {
             event_id,
@@ -149,6 +171,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         MessageType::_Custom(_) => matrix_messages::Message {
             event_id,
@@ -156,6 +179,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         },
         _ => matrix_messages::Message {
             event_id,
@@ -163,6 +187,7 @@ fn save_message_in_db(
             body: "".to_owned(),
             sender: ev.sender().to_string(),
             timestamp: event_timestamp,
+            message_event_debug_string: format!("{:?}", ev),
         }
     };
     matrix_messages_table.insert_or_update(message).expect(

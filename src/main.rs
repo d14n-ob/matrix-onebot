@@ -2,6 +2,7 @@ use std::{io, panic};
 use std::io::{Read, Write};
 use matrix_sdk::config::SyncSettings;
 use crate::config::LANG;
+use crate::constant::{VERSION};
 
 mod matrix;
 mod onebot;
@@ -14,6 +15,7 @@ mod sql;
 async fn main() {
     set_panic_hook();
     tracing_subscriber::fmt::init();
+    hello();
 
     // 启动 MatrixClient
     // matrix::entry(ob).await;
@@ -39,4 +41,15 @@ fn set_panic_hook() {
         io::stdout().flush().unwrap();
         let _ = io::stdin().read_line(&mut String::new()).unwrap();
     }));
+}
+
+fn hello() {
+    println!(
+        "\
+======
+MATRIX-ONEBOT v{}
+欢迎! 当前处于 v0.x.x 快速更新不稳定版本, 不会有预先的变动通知!
+======\
+", VERSION
+    );
 }

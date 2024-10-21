@@ -9,6 +9,7 @@ pub struct Message {
     pub body: String,
     pub sender: String,
     pub timestamp: i64,
+    pub message_event_debug_string: String,
 }
 
 // table
@@ -19,7 +20,8 @@ pub const TABLE_CREATE_SQL: &'static str =
         type        TEXT,
         body        TEXT,
         sender      TEXT,
-        timestamp   BIGINT NOT NULL
+        timestamp   BIGINT NOT NULL,
+        message_event_debug_string TEXT
         )";
 
 #[derive(Clone)]
@@ -39,11 +41,11 @@ impl TableCommonOpera for Table {
     fn insert_or_update(&self, model: Self::Model) -> rusqlite::Result<()> {
         let conn = self.connection.lock().unwrap();
         let query = format!(
-            "INSERT OR REPLACE INTO {} (event_id, type, body, sender, timestamp) VALUES (?1, ?2, ?3, ?4, ?5)", TABLE_NAME
+            "INSERT OR REPLACE INTO {} (event_id, type, body, sender, timestamp, message_event_debug_string) VALUES (?1, ?2, ?3, ?4, ?5, ?6)", TABLE_NAME
         );
         conn.execute(
             &query,
-            params![model.event_id, model.ty, model.body, model.sender, model.timestamp]
+            params![model.event_id, model.ty, model.body, model.sender, model.timestamp, model.message_event_debug_string]
         )?;
         Ok(())
     }
@@ -51,7 +53,7 @@ impl TableCommonOpera for Table {
     fn query(&self, event_id: &str) -> rusqlite::Result<Option<Self::Model>> {
         let conn = self.connection.lock().unwrap();
         let query = format!(
-            "SELECT type, body, sender, timestamp FROM {} WHERE event_id = ?1", TABLE_NAME
+            "SELECT type, body, sender, timestamp, message_event_debug_string FROM {} WHERE event_id = ?1", TABLE_NAME
         );
         let data = conn.query_row(
             &query,
@@ -62,6 +64,7 @@ impl TableCommonOpera for Table {
                 body: row.get(1)?,
                 sender: row.get(2)?,
                 timestamp: row.get(3)?,
+                message_event_debug_string: row.get(4)?,
             }))
         );
         Self::tool_handle_query_row_result(data)

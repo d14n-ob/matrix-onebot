@@ -13,7 +13,7 @@ use crate::sql::table::{TableCommonOpera, matrix_events};
 
 impl MatrixHandler {
     pub async fn send_message(&self , c: SendMessage) -> RespResult<SendMessageResp> {
-        println!("Recv SendMessageAction: {:?}", c);
+        // println!("Recv SendMessageAction: {:?}", c);
         match c.detail_type.as_str() {
             "group" => {
                 let target_group_id = c.group_id.ok_or_else(|| error::bad_param("group_id is null"))?;
@@ -54,17 +54,21 @@ impl MatrixHandler {
 
                 // 查找私聊房间
                 let joined_rooms = self.get_client()?.joined_rooms();
-                let mut room: Option<&Room> = None;
-                for r in joined_rooms.iter() {
+                let mut room: Option<Room> = None;
+                // todo: 排序 + 二分筛选 2 人房间
+                for r in joined_rooms {
                     if let Ok(members) = r.members(RoomMemberships::JOIN).await {
-                        if members.len() != 2 { continue }
+                        if members.len() != 2 { continue } // 如果判断 is_direct 还需要通过人数判断吗
+                        if let Ok(is_direct) = r.is_direct().await {
+                            if !is_direct { continue }
+                        }
                         if members.iter().find(|m| m.user_id() == target_user_id).is_some() {
                             room = Some(r)
                         }
                     } else { continue }
                 }
                 let room: Room =
-                    if let Some(room) = room { room.to_owned() }
+                    if let Some(room) = room { room }
                     else {
                         if let Ok(room) = self.get_client()?.create_dm(&target_user_id).await {
                             room

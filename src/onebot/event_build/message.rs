@@ -3,6 +3,7 @@ use matrix_sdk::ruma::events::room::MediaSource::Plain;
 use matrix_sdk::ruma::events::room::message::{MessageType, RoomMessageEventContent, SyncRoomMessageEvent};
 use walle_core::prelude::*;
 use walle_core::event::{Group, GroupMessageEvent, Message, Private, PrivateMessageEvent};
+use crate::config::CONFIG;
 use crate::onebot::matrix::{get_self, get_time};
 
 pub fn private(ev: SyncRoomMessageEvent) -> PrivateMessageEvent {
@@ -13,7 +14,7 @@ pub fn private(ev: SyncRoomMessageEvent) -> PrivateMessageEvent {
         time: get_time(ev.origin_server_ts()),
         implt: (),
         platform: (),
-        ty: get_msg(eid, ev),
+        ty: get_message(eid, ev),
         detail_type: Private,
         sub_type: (),
         extra: Default::default()
@@ -28,7 +29,7 @@ pub fn group(ev: SyncRoomMessageEvent, room: Room) -> GroupMessageEvent {
         time: get_time(ev.origin_server_ts()),
         implt: (),
         platform: (),
-        ty: get_msg(eid, ev),
+        ty: get_message(eid, ev),
         detail_type: Group {
             group_id: room.room_id().into(),
         },
@@ -39,21 +40,30 @@ pub fn group(ev: SyncRoomMessageEvent, room: Room) -> GroupMessageEvent {
 
 
 
-fn get_msg(eid: String, ev: SyncRoomMessageEvent) -> Message {
+fn get_message(eid: String, ev: SyncRoomMessageEvent) -> Message {
     let msg_content = &ev.as_original().unwrap().content;
     let msg_type = &msg_content.msgtype;
+
+    let debug_struct_message = get_struct_debug_msg(msg_content);
+    let alt_message = get_alt_msg(msg_type);
+
+    let message = if CONFIG.read().unwrap().onebot.is_message_forward_struct {
+        debug_struct_message.clone()
+    } else { alt_message.clone() };
+    let alt_message = if CONFIG.read().unwrap().onebot.is_alt_message_forward_struct {
+        debug_struct_message
+    } else { alt_message };
 
     Message {
         selft: get_self(),
         message_id: eid.clone(),
-        // message: Segments::from([MsgSegment::from(get_msg_segment(msg_content))]),
-        message: Segments::from([MsgSegment::from(get_alt_msg_segment(msg_type))]),
-        alt_message: get_alt_msg_segment(msg_type),
+        message: Segments::from([MsgSegment::from(message)]),
+        alt_message,
         user_id: ev.sender().into(),
     }
 }
 
-fn get_msg_segment(msg_content: &RoomMessageEventContent) -> String {
+fn get_struct_debug_msg(msg_content: &RoomMessageEventContent) -> String {
     let msg_type = &msg_content.msgtype;
 
     match msg_type {
@@ -74,7 +84,7 @@ fn get_msg_segment(msg_content: &RoomMessageEventContent) -> String {
     }
 }
 
-fn get_alt_msg_segment(msg_type: &MessageType) -> String {
+fn get_alt_msg(msg_type: &MessageType) -> String {
     match msg_type {
         MessageType::Audio(_) => { String::from("暂未实现") }
         MessageType::Emote(_) => { String::from("暂未实现") }

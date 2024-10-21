@@ -21,11 +21,16 @@ pub struct MatrixHandler {
 impl MatrixHandler {
     async fn _handle(&self, action: Action) -> Result<Resp, RespError> {
         match MatrixAction::try_from(action).map_err(map_action_parse_error)? {
+            //GetLatestEvents
             MatrixAction::GetSupportedActions {} => Self::get_supported_actions().map(Into::into),
             MatrixAction::GetStatus {} => Ok(self.get_status().await.into()),
             MatrixAction::GetVersion {} => Ok(self.get_version().into()),
 
             MatrixAction::SendMessage(c) => self.send_message(c).await.map(Into::into),
+
+            MatrixAction::GetSelfInfo {} => self.get_self_info().await.map(Into::into),
+            MatrixAction::GetUserInfo(c) => self.get_user_info(c).await.map(Into::into),
+            MatrixAction::GetFriendList {} => self.get_friend_list().await.map(Into::into),
         }
     }
     pub fn new(client: Client) -> Self {
@@ -50,7 +55,15 @@ impl MatrixHandler {
     }
     fn get_supported_actions() -> RespResult<Vec<&'static str>> {
         Ok(vec![
+            // "get_latest_events",
+            "get_supported_actions",
+            "get_status",
+            "get_version",
             "send_message",
+            // "delete_message",
+            "get_self_info",
+            "get_user_info",
+            "get_friend_list",
         ])
     }
 }

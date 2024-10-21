@@ -56,12 +56,21 @@ pub struct Config {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OBConfig {
-    pub query_self_event_interval_secs: u64
+    pub query_self_event_interval_secs: u64, // OneBot Actions Handler 查询自身信息间隔
+    pub is_intercept_self_message: bool, // 是否拦截自身信息(不传递给应用端)
+
+    pub is_message_forward_struct: bool, // message中是否返回数据结构 (否: 用户可读字符串)
+    pub is_alt_message_forward_struct: bool, // message中是否返回数据结构 (否: 用户可读字符串)
 }
 
 impl Default for OBConfig {
     fn default() -> Self {
-        Self { query_self_event_interval_secs: 1 }
+        Self {
+            query_self_event_interval_secs: 1,
+            is_intercept_self_message: true,
+            is_message_forward_struct: true,
+            is_alt_message_forward_struct: false,
+        }
     }
 }
 
@@ -179,6 +188,7 @@ pub struct Lang {
     pub error_database_table_query_failed: String,
     pub error_database_table_delete_failed: String,
     pub error_database_table_edit_failed: String,
+    pub error_database_migrate_failed: String,
 }
 
 impl Default for Lang {
@@ -196,6 +206,7 @@ impl Default for Lang {
             error_database_table_query_failed: "错误: 数据库表 {table} 查询失败: {error}".to_owned(),
             error_database_table_delete_failed: "错误: 数据库表 {table} 删除(行)失败".to_owned(),
             error_database_table_edit_failed: "错误: 数据库表 {table} 修改失败".to_owned(),
+            error_database_migrate_failed: "错误: 数据库迁移失败, 从 {ver} 版本".to_owned(),
         }
     }
 }
