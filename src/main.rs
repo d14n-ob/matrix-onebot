@@ -1,5 +1,5 @@
 use std::{io, panic};
-use std::io::{Read, Write};
+use std::io::Write;
 use matrix_sdk::config::SyncSettings;
 use crate::config::LANG;
 use crate::constant::{VERSION};

@@ -7,6 +7,8 @@ use matrix_sdk::{Client, ruma::{
         }
     },
 }, Room, ServerName};
+use matrix_sdk::ruma::events::room::member::SyncRoomMemberEvent;
+use matrix_sdk::ruma::events::room::redaction::RoomRedactionEvent;
 use matrix_sdk::ruma::UserId;
 use crate::config::{CONFIG};
 use crate::matrix::handlers::EventHandler;
@@ -31,9 +33,17 @@ pub async fn add_event_handlers(client: Client, event_handler: EventHandler) -> 
     }
 
     // MemberEvent
+    {
+        let event_handler = Arc::clone(&event_handler);
+        client.add_event_handler(move |ev: SyncRoomMemberEvent, room: Room| async move {
+            event_handler.member(ev, room).await
+        });
+    }
+
+    // RedactEvent 消息撤回
     // {
     //     let event_handler = Arc::clone(&event_handler);
-    //     client.add_event_handler(move |ev: SyncRoomMessageEvent, room: Room| async move {
+    //     client.add_event_handler(move |ev: RoomRedactionEvent, room: Room, client: Client| async move {
     //
     //     })
     // }
