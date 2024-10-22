@@ -27,6 +27,7 @@ impl MatrixHandler {
             MatrixAction::GetVersion {} => Ok(self.get_version().into()),
 
             MatrixAction::SendMessage(c) => self.send_message(c).await.map(Into::into),
+            MatrixAction::DeleteMessage(c) => self.delete_message(c).await.map(Into::into),
 
             MatrixAction::GetSelfInfo {} => self.get_self_info().await.map(Into::into),
             MatrixAction::GetUserInfo(c) => self.get_user_info(c).await.map(Into::into),
@@ -60,7 +61,7 @@ impl MatrixHandler {
             "get_status",
             "get_version",
             "send_message",
-            // "delete_message",
+            "delete_message",
             "get_self_info",
             "get_user_info",
             "get_friend_list",

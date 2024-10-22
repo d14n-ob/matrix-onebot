@@ -1,4 +1,4 @@
-use walle_core::action::{GetLatestEvents, GetUserInfo, SendMessage};
+use walle_core::action::{DeleteMessage, GetLatestEvents, GetUserInfo, SendMessage};
 use walle_core::prelude::TryFromAction;
 
 #[derive(Debug, Clone, TryFromAction)]
@@ -9,6 +9,7 @@ pub enum MatrixAction {
     GetVersion {},
 
     SendMessage(SendMessage),
+    DeleteMessage(DeleteMessage),
 
     GetSelfInfo {},
     GetUserInfo(GetUserInfo),

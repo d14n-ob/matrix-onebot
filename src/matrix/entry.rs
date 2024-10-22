@@ -30,6 +30,14 @@ pub async fn add_event_handlers(client: Client, event_handler: EventHandler) -> 
         });
     }
 
+    // MemberEvent
+    // {
+    //     let event_handler = Arc::clone(&event_handler);
+    //     client.add_event_handler(move |ev: SyncRoomMessageEvent, room: Room| async move {
+    //
+    //     })
+    // }
+
     Ok(client)
 }
 

@@ -1,6 +1,6 @@
 use matrix_sdk::{Room, RoomMemberships};
-use matrix_sdk::ruma::{UserId};
-use walle_core::action::SendMessage;
+use matrix_sdk::ruma::{EventId, RoomId, UserId};
+use walle_core::action::{DeleteMessage, SendMessage};
 use walle_core::structs::SendMessageResp;
 use walle_core::resp::{resp_error,};
 use matrix_sdk::ruma::events::room::message::RoomMessageEventContent;
@@ -8,6 +8,7 @@ use walle_core::util::Value;
 use crate::config::{CONFIG, LANG};
 use crate::onebot::actions::handler::{MatrixHandler, RespResult};
 use crate::error;
+use crate::error::{group_not_exist, matrix_client_error};
 use crate::sql::DATABASE;
 use crate::sql::table::{TableCommonOpera, matrix_events};
 
@@ -32,7 +33,7 @@ impl MatrixHandler {
                     let Value::Str(simple_msg) = simple_msg else { todo!() };
                     let content = RoomMessageEventContent::text_plain(simple_msg);
                     let resp_eid = room.send(content).await
-                        .map_err(|e| error::matrix_client_error(e))?.event_id;
+                        .map_err(|e| matrix_client_error(e))?.event_id;
 
                     Ok(
                         SendMessageResp {
@@ -41,7 +42,7 @@ impl MatrixHandler {
                         }
                     )
                 } else {
-                    Err(error::group_not_exist(""))
+                    Err(group_not_exist(""))
                 }
             }
             "group_temp" => {
@@ -73,7 +74,7 @@ impl MatrixHandler {
                         if let Ok(room) = self.get_client()?.create_dm(&target_user_id).await {
                             room
                         } else {
-                            return Err(error::group_not_exist("无法从给定ID创建/进入私聊房间"))
+                            return Err(group_not_exist("无法从给定ID创建/进入私聊房间"))
                         }
                     };
 
@@ -86,7 +87,7 @@ impl MatrixHandler {
                 let Value::Str(simple_msg) = simple_msg else { todo!() };
                 let content = RoomMessageEventContent::text_plain(simple_msg);
                 let resp_eid = room.send(content).await
-                    .map_err(|e| error::matrix_client_error(e))?.event_id;
+                    .map_err(|e| matrix_client_error(e))?.event_id;
 
                 Ok(
                     SendMessageResp {
@@ -97,6 +98,32 @@ impl MatrixHandler {
 
             }
             ty => { Err(resp_error::unsupported_param(ty)) }
+        }
+    }
+
+    pub async fn delete_message(&self, c: DeleteMessage) -> RespResult<()> {
+        let client = self.get_client()?;
+        let event_id = c.message_id;
+        let room_id = DATABASE.get_matrix_events_table().query(&event_id)
+            .expect(&LANG.read().unwrap().error_database_table_query_failed.replace("{table}", matrix_events::TABLE_NAME));
+
+        // 我勒个 if 嵌套, 记得重构
+        if let Some(event) = room_id {
+            let room_id = event.room_id;
+            let room_id = RoomId::parse(room_id).expect("房间号构造失败");
+            let event_id = EventId::parse(event_id).expect("房间号构造失败");
+            let room = client.get_room(&room_id);
+
+            if let Some(room) = room {
+                room.redact(&event_id, Some("撤回"), None).await.map_err(|e| matrix_client_error(e))?;
+
+                Ok(())
+            } else {
+                Err(group_not_exist("房间不存在"))
+            }
+
+        } else {
+            Err(group_not_exist("房间不存在"))
         }
     }
 }

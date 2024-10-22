@@ -6,6 +6,7 @@ use crate::sql::table::{TableAssociatedType, TableCommonOpera, TablePrivateCommo
 pub struct Event {
     pub event_id: String,
     pub ty: String,
+    pub room_id: String,
     pub timestamp: i64,
 }
 
@@ -15,6 +16,7 @@ pub const TABLE_CREATE_SQL: &'static str =
     "CREATE TABLE IF NOT EXISTS matrix_events (
         event_id    TEXT PRIMARY KEY,
         type        TEXT,
+        room_id     TEXT,
         timestamp   BIGINT NOT NULL
         )";
 
@@ -37,11 +39,11 @@ impl TableCommonOpera for Table {
     fn insert_or_update(&self, model: Self::Model) -> rusqlite::Result<()> {
         let conn = self.connection.lock().unwrap();
         let query = format!(
-            "INSERT OR REPLACE INTO {} (event_id, type, timestamp) VALUES (?1, ?2, ?3)", TABLE_NAME
+            "INSERT OR REPLACE INTO {} (event_id, type, room_id, timestamp) VALUES (?1, ?2, ?3, ?4)", TABLE_NAME
         );
         conn.execute(
             &query,
-            params![model.event_id, model.ty, model.timestamp]
+            params![model.event_id, model.ty, model.room_id, model.timestamp]
         )?;
         Ok(())
     }
@@ -49,7 +51,7 @@ impl TableCommonOpera for Table {
     fn query(&self, event_id: &str) -> rusqlite::Result<Option<Self::Model>> {
         let conn = self.connection.lock().unwrap();
         let query = format!(
-            "SELECT type, timestamp FROM {} WHERE event_id = ?1", TABLE_NAME
+            "SELECT type, room_id, timestamp FROM {} WHERE event_id = ?1", TABLE_NAME
         );
         let data = conn.query_row(
             &query,
@@ -57,7 +59,8 @@ impl TableCommonOpera for Table {
             |row| Ok(Some(Event {
                 event_id: event_id.to_owned(),
                 ty: row.get(0)?,
-                timestamp: row.get(1)?,
+                room_id: row.get(1)?,
+                timestamp: row.get(2)?,
             }))
         );
         Self::tool_handle_query_row_result(data)

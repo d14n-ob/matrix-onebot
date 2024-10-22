@@ -22,7 +22,7 @@ impl EventHandler {
             // 如果数据库中存在此消息, 说明是被同步的 历史消息, 不处理
             return;
         }
-        save_message_in_db(&ev, &matrix_events_table, &matrix_messages_table, insert_failed_msg);
+        save_message_in_db(&ev, &room, &matrix_events_table, &matrix_messages_table, insert_failed_msg);
 
         // println!("Message Received: {:?}", ev);
         // println!("Members: {}", room.members(RoomMemberships::JOIN).await.unwrap().len());
@@ -74,6 +74,7 @@ fn query_event_is_in_db(
 
 fn save_message_in_db(
     ev: &SyncRoomMessageEvent,
+    room: &Room,
     matrix_events_table: &matrix_events::Table,
     matrix_messages_table: &matrix_messages::Table,
     insert_failed_msg: String,
@@ -85,6 +86,7 @@ fn save_message_in_db(
     matrix_events_table.insert_or_update(matrix_events::Event {
         event_id: event_id.clone(),
         ty: "message".to_owned(),
+        room_id: room.room_id().to_string(),
         timestamp: event_timestamp,
     }).expect(
         &insert_failed_msg.replace("{table}", matrix_events::TABLE_NAME),
