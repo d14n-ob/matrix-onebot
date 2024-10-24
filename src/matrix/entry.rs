@@ -8,7 +8,6 @@ use matrix_sdk::{Client, ruma::{
     },
 }, Room, ServerName};
 use matrix_sdk::ruma::events::room::member::SyncRoomMemberEvent;
-use matrix_sdk::ruma::events::room::redaction::RoomRedactionEvent;
 use matrix_sdk::ruma::UserId;
 use crate::config::{CONFIG};
 use crate::matrix::handlers::EventHandler;

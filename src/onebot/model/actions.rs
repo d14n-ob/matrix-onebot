@@ -1,4 +1,4 @@
-use walle_core::action::{DeleteMessage, GetLatestEvents, GetUserInfo, SendMessage};
+use walle_core::action::{DeleteMessage, GetUserInfo, SendMessage};
 use walle_core::prelude::TryFromAction;
 
 #[derive(Debug, Clone, TryFromAction)]

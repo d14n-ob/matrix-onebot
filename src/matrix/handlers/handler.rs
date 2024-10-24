@@ -1,11 +1,8 @@
 use std::sync::Arc;
 use walle_core::{
-    action::Action,
-    alt::TracingHandler,
     event::Event,
     obc::ImplOBC,
     OneBot,
-    prelude::Resp,
 };
 use crate::onebot::MatrixHandler;
 
